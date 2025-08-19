@@ -37,6 +37,7 @@
       position: relative;
       top: 50%;
       transform: translateY(-50%);
+      transition: opacity 0.5s ease;
     }
 
     input, select, button {
@@ -69,14 +70,14 @@
       transform: translate(-50%, -50%) scale(0.8);
       background: rgba(0, 0, 0, 0.85);
       color: #fff;
-      padding: 25px 35px;
+      padding: 55px 10px;
       border-radius: 15px;
-      font-size: 1.2rem;
+      font-size: 1.1rem;
       font-weight: bold;
       text-align: center;
       opacity: 0;
       pointer-events: none;
-      transition: all 0.4s ease;
+      transition: all 1s ease;
       box-shadow: 0 10px 30px rgba(0,0,0,0.5);
       z-index: 2000;
     }
@@ -84,7 +85,7 @@
       opacity: 1;
       transform: translate(-50%, -50%) scale(1);
       pointer-events: auto;
-      animation: pop 1s ease;
+      animation: pop 0.5s ease;
     }
     @keyframes pop {
       0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
@@ -92,7 +93,7 @@
       100% { transform: translate(-50%, -50%) scale(1); }
     }
 
-    /* Loader */
+    /* Loader bulat */
     .loader {
       width: 60px;
       height: 60px;
@@ -109,16 +110,79 @@
       0% { box-shadow: 0 0 10px #00eaff, 0 0 20px #ff00ff; }
       100% { box-shadow: 0 0 25px #ff9800, 0 0 50px #00eaff; }
     }
+
+    /* Progress Bar */
+    .progress-bar {
+      width: 100%;
+      height: 10px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-top: 10px;
+    }
+    .progress {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #00eaff, #ff00ff, #ff9800);
+      border-radius: 10px;
+      transition: width 0.2s;
+    }
+
+    /* Animasi form muncul kembali */
+    .fadeZoomIn {
+      animation: fadeZoomIn 0.7s ease forwards;
+    }
+    @keyframes fadeZoomIn {
+      0% { opacity: 0; transform: translateY(-50%) scale(0.8); }
+      60% { opacity: 1; transform: translateY(-50%) scale(1.05); }
+      100% { opacity: 1; transform: translateY(-50%) scale(1); }
+    }
+
+    /* PRELOADER */
+    #preloader {
+      position: fixed;
+      top:0;
+      left:0;
+      width:100%;
+      height:100%;
+      background: #000;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      flex-direction:column;
+      z-index:3000;
+      color:#fff;
+      transition: opacity 0.8s ease, visibility 0.8s;
+    }
+    #preloader.hide {
+      opacity:0;
+      visibility:hidden;
+    }
+    .typing {
+      border-right: 3px solid #ff9800;
+      white-space: nowrap;
+      overflow: hidden;
+      width: 0;
+      animation: typing 3s steps(30,end) forwards, blink 0.7s step-end infinite alternate;
+    }
+    @keyframes typing { from { width:0 } to { width: 260px } }
+    @keyframes blink { 50% { border-color: transparent; } }
   </style>
 </head>
 <body>
+  <!-- PRELOADER -->
+  <div id="preloader">
+    <div class="loader"></div>
+    <h2 class="typing">ʟɪғs ʟᴏᴅɪɴɢ sʏsᴛᴇᴍ...</h2>
+  </div>
+
   <!-- Video Catbox sebagai background dengan suara -->
   <video autoplay loop id="bgVideo">
     <source src="https://files.catbox.moe/obovoy.mp4" type="video/mp4">
   </video>
 
-  <div class="container">
-    <h2>𝗟𝗜𝗙𝗦 𝗖𝗥𝗔𝗦𝗛 𝗔𝗣𝗞 𝗩𝟭</h2>
+  <div class="container" id="formContainer">
+    <h2></h2>
     <form id="foodForm">
       <input type="number" placeholder="Masukan No Target" required>
       <select required>
@@ -135,23 +199,34 @@
   <!-- Notifikasi Loading -->
   <div id="notifLoading" class="notif">
     <div class="loader"></div>
-    <p>Sedang memproses...</p>
+    <p>Lifs Meluncurkan Serangan...</p>
+    <div class="progress-bar"><div class="progress" id="progress"></div></div>
   </div>
 
   <!-- Notifikasi Sukses -->
-  <div id="notifSuccess" class="notif">✅ sᴜᴋsᴇs ʟɪғs ᴛᴀʀɢᴇᴛ sᴜᴅᴀʜ ᴄ𝟷 ᴋɪᴛᴀ ʟᴀɴᴊᴜᴛ ᴠᴇʟᴏᴄɪᴛʏ😚😶‍🌫</div>
+  <div id="notifSuccess" class="notif">ᴛᴀʀɢᴇᴛ sᴜᴅᴀʜ ᴄ𝟷 ᴋɪɴᴋ ʟᴀɴᴊᴜᴛ ᴠᴇʟᴏᴄɪᴛʏ 😚😶‍🌫</div>
 
   <!-- Suara ding notif -->
-  <audio id="dingSound" src="https://files.catbox.moe/z1y7h3.mp3"></audio>
+  <audio id="dingSound" src="https://files.catbox.moe/ykd9k9.mp3"></audio>
 
   <script>
     const form = document.getElementById('foodForm');
     const notifLoading = document.getElementById('notifLoading');
     const notifSuccess = document.getElementById('notifSuccess');
+    const progress = document.getElementById('progress');
     const ding = document.getElementById('dingSound');
     const bgVideo = document.getElementById('bgVideo');
+    const formContainer = document.getElementById('formContainer');
+    const preloader = document.getElementById('preloader');
 
-    // Trick agar suara video bisa autoplay di beberapa browser
+    // Sembunyikan preloader setelah 3 detik
+    window.addEventListener("load", () => {
+      setTimeout(() => {
+        preloader.classList.add("hide");
+      }, 3000);
+    });
+
+    // Aktifkan suara video setelah user klik
     document.addEventListener("click", () => {
       bgVideo.muted = false;
       bgVideo.play();
@@ -161,16 +236,40 @@
       e.preventDefault();
 
       notifLoading.classList.add("show");
+      progress.style.width = "0%";
+
+      let percent = 0;
+      let interval = setInterval(() => {
+        percent += 5;
+        if (percent <= 100) {
+          progress.style.width = percent + "%";
+        }
+      }, 120);
 
       setTimeout(() => {
+        clearInterval(interval);
         notifLoading.classList.remove("show");
         notifSuccess.classList.add("show");
+
+        // Hilangkan form
+        formContainer.style.opacity = "0";
+        setTimeout(() => { formContainer.style.display = "none"; }, 500);
 
         ding.play();
 
         setTimeout(() => {
           notifSuccess.classList.remove("show");
-        }, 5000);
+        }, 4000);
+
+        // Tampilkan kembali form setelah 5 detik
+        setTimeout(() => {
+          formContainer.style.display = "block";
+          formContainer.style.opacity = "1";
+          formContainer.classList.add("fadeZoomIn");
+          setTimeout(() => {
+            formContainer.classList.remove("fadeZoomIn");
+          }, 1000);
+        }, 7000);
 
       }, 2500);
     });
