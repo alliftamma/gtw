@@ -1,188 +1,153 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Form Pilihan Makan + Background Video Bersuara</title>
-  <style>
-    body, html {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      overflow: hidden;
-      font-family: Arial, sans-serif;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Web Final Lifs</title>
+<style>
+body, html {
+  margin:0; padding:0; height:100%;
+  font-family:Arial,sans-serif;
+  overflow:hidden;
+  background:transparent;
+}
 
-    /* Video sebagai background */
-    #bgVideo {
-      position: fixed;
-      top: 0;
-      left: 0;
-      min-width: 100%;
-      min-height: 100%;
-      z-index: -1;
-      object-fit: cover;
-    }
+/* Background utama */
+#bgVideo, #bgImage {
+  position:fixed;
+  top:0; left:0;
+  width:100%; height:100%;
+  object-fit:cover;
+  transition:opacity 2s ease;
+  z-index:-1;
+  opacity:0;
+  will-change: opacity, transform;
+}
+#bgVideo { display:block; }
+#bgImage { display:none; z-index:-2; }
 
-    /* Kontainer form */
-    .container {
-      background: rgba(0,0,0,0.6);
-      padding: 30px;
-      border-radius: 15px;
-      color: #fff;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-      text-align: center;
-      width: 300px;
-      margin: auto;
-      position: relative;
-      top: 50%;
-      transform: translateY(-50%);
-      transition: opacity 0.5s ease;
-    }
+/* Background login khusus */
+#loginBg {
+  position:fixed;
+  top:0; left:0;
+  width:100%; height:100%;
+  object-fit:cover;
+  z-index:-3;
+  filter:brightness(0.7); /* lebih ringan daripada blur */
+}
 
-    input, select, button {
-      width: 100%;
-      padding: 10px;
-      margin: 10px 0;
-      border-radius: 8px;
-      border: none;
-      font-size: 16px;
-    }
-    input[type="number"] {
-      text-align: center;
-    }
-    button {
-      background: #ff9800;
-      color: #fff;
-      cursor: pointer;
-      font-weight: bold;
-      transition: background 0.3s;
-    }
-    button:hover {
-      background: #e68900;
-    }
+/* Menu titik tiga */
+.menu { position: fixed; top:15px; right:20px; z-index:6000; opacity:0; transition:opacity 1s ease; }
+.menu-btn { font-size:30px; cursor:pointer; color:white; user-select:none; position:relative; overflow:hidden; transition: transform 0.3s ease, color 0.3s ease; }
+.menu-btn:hover { transform: scale(1.3) rotate(90deg); color:#ff9800; }
+.menu-btn:active::after { content:''; position:absolute; left:50%; top:50%; width:0; height:0; background: rgba(255,255,255,0.3); border-radius:50%; transform:translate(-50%,-50%); animation:ripple 0.6s ease-out; }
+@keyframes ripple {0%{width:0;height:0;opacity:1;}100%{width:120px;height:120px;opacity:0;}}
+.menu-content { display:none; position:absolute; right:0; margin-top:10px; background:rgba(0,0,0,0.8); border-radius:10px; overflow:hidden; box-shadow:0 4px 10px rgba(0,0,0,0.4); transition: all 0.3s ease; }
+.menu-content button { background:transparent; border:none; color:white; padding:10px 20px; width:100%; text-align:left; cursor:pointer; font-size:15px; }
+.menu-content button:hover { background:rgba(255,255,255,0.1); }
+.menu.show .menu-content { display:block; }
 
-    /* Notifikasi */
-    .notif {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%) scale(0.8);
-      background: rgba(0, 0, 0, 0.85);
-      color: #fff;
-      padding: 55px 10px;
-      border-radius: 15px;
-      font-size: 1.1rem;
-      font-weight: bold;
-      text-align: center;
-      opacity: 0;
-      pointer-events: none;
-      transition: all 1s ease;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-      z-index: 2000;
-    }
-    .notif.show {
-      opacity: 1;
-      transform: translate(-50%, -50%) scale(1);
-      pointer-events: auto;
-      animation: pop 0.5s ease;
-    }
-    @keyframes pop {
-      0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
-      60% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
-      100% { transform: translate(-50%, -50%) scale(1); }
-    }
+/* Login page */
+#loginPage { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(0,0,0,0.7); padding:30px; border-radius:15px; text-align:center; color:#fff; width:300px; z-index:5000; }
+#loginPage input { width:100%; padding:10px; margin:10px 0; border-radius:8px; border:none; font-size:16px; }
+#loginPage button { width:100%; padding:10px; background:#ff9800; color:#fff; font-weight:bold; border:none; cursor:pointer; }
+#loginPage button:hover { background:#e68900; }
+#loginNotif { margin-top:10px; font-weight:bold; }
 
-    /* Loader bulat */
-    .loader {
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      border: 6px solid rgba(255,255,255,0.2);
-      border-top: 6px solid #00eaff;
-      border-right: 6px solid #ff00ff;
-      border-bottom: 6px solid #ff9800;
-      animation: spin 1s linear infinite, glow 1.5s ease-in-out infinite alternate;
-      margin: 0 auto 15px auto;
-    }
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    @keyframes glow {
-      0% { box-shadow: 0 0 10px #00eaff, 0 0 20px #ff00ff; }
-      100% { box-shadow: 0 0 25px #ff9800, 0 0 50px #00eaff; }
-    }
+/* Main Web */
+#mainWeb { display:none; height:100%; display:flex; justify-content:center; align-items:center; flex-direction:column; position:relative; }
 
-    /* Progress Bar */
-    .progress-bar {
-      width: 100%;
-      height: 10px;
-      background: rgba(255,255,255,0.2);
-      border-radius: 10px;
-      overflow: hidden;
-      margin-top: 10px;
-    }
-    .progress {
-      height: 100%;
-      width: 0%;
-      background: linear-gradient(90deg, #00eaff, #ff00ff, #ff9800);
-      border-radius: 10px;
-      transition: width 0.2s;
-    }
+/* Container form */
+.container {
+  background: rgba(0,0,0,0.7);
+  padding:30px;
+  border-radius:15px;
+  color:#fff;
+  box-shadow:0 4px 10px rgba(0,0,0,0.4); /* lebih ringan */
+  text-align:center;
+  width:300px;
+  opacity:0;
+  transform: scale(0.7);
+  transition: opacity 1s ease, transform 1s ease;
+  will-change: opacity, transform;
+}
+.container.show { opacity:1; transform: scale(1); }
+.container input,
+.container select {
+  width:100%;
+  padding:12px;
+  margin:10px 0;
+  border-radius:8px;
+  border:none;
+  font-size:16px;
+  outline:none;
+  transition: 0.3s ease;
+}
+.container input:focus,
+.container select:focus { box-shadow:0 0 10px #00eaff; }
+.container button {
+  width:100%;
+  padding:12px;
+  background:#ff9800;
+  color:#fff;
+  font-weight:bold;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  transition:0.3s;
+}
+.container button:hover { background:#e68900; }
 
-    /* Animasi form muncul kembali */
-    .fadeZoomIn {
-      animation: fadeZoomIn 0.7s ease forwards;
-    }
-    @keyframes fadeZoomIn {
-      0% { opacity: 0; transform: translateY(-50%) scale(0.8); }
-      60% { opacity: 1; transform: translateY(-50%) scale(1.05); }
-      100% { opacity: 1; transform: translateY(-50%) scale(1); }
-    }
+/* Loader & Progress */
+.loader { width:60px; height:60px; border-radius:50%; border:6px solid rgba(255,255,255,0.2); border-top:6px solid #00eaff; border-right:6px solid #ff00ff; border-bottom:6px solid #ff9800; animation: spin 1.2s linear infinite, glow 1.5s ease-in-out infinite alternate; margin:0 auto 15px auto; }
+@keyframes spin {0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
+@keyframes glow {0%{box-shadow:0 0 5px #00eaff;}100%{box-shadow:0 0 15px #ff9800;}}
 
-    /* PRELOADER */
-    #preloader {
-      position: fixed;
-      top:0;
-      left:0;
-      width:100%;
-      height:100%;
-      background: #000;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      flex-direction:column;
-      z-index:3000;
-      color:#fff;
-      transition: opacity 0.8s ease, visibility 0.8s;
-    }
-    #preloader.hide {
-      opacity:0;
-      visibility:hidden;
-    }
-    .typing {
-      border-right: 3px solid #ff9800;
-      white-space: nowrap;
-      overflow: hidden;
-      width: 0;
-      animation: typing 3s steps(30,end) forwards, blink 0.7s step-end infinite alternate;
-    }
-    @keyframes typing { from { width:0 } to { width: 260px } }
-    @keyframes blink { 50% { border-color: transparent; } }
-  </style>
+/* Notifikasi */
+.notif { position: fixed; top: 50%; left:50%; transform: translate(-50%, -50%) scale(0.8); background: rgba(0,0,0,0.85); color:#fff; padding:55px 10px; border-radius:15px; font-size:1.1rem; font-weight:bold; text-align:center; opacity:0; pointer-events:none; transition: all 1s ease; box-shadow:0 10px 20px rgba(0,0,0,0.4); z-index:2000; will-change: opacity, transform; }
+.notif.show { opacity:1; transform:translate(-50%, -50%) scale(1); pointer-events:auto; animation: pop 0.5s ease; }
+@keyframes pop {0% { transform: translate(-50%, -50%) scale(0.5); opacity:0; }60%{ transform: translate(-50%, -50%) scale(1.1); opacity:1; }100%{ transform: translate(-50%, -50%) scale(1); }}
+
+/* Preloader */
+#preloader { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); display:flex; align-items:center; justify-content:center; flex-direction:column; z-index:3000; color:#fff; transition: opacity 0.8s ease, visibility 0.8s; }
+#preloader.hide { opacity:0; visibility:hidden; }
+</style>
 </head>
 <body>
-  <!-- PRELOADER -->
-  <div id="preloader">
-    <div class="loader"></div>
-    <h2 class="typing">ʟɪғs ʟᴏᴅɪɴɢ sʏsᴛᴇᴍ...</h2>
+
+<!-- Background login khusus -->
+<img id="loginBg" src="https://files.catbox.moe/rkjdnv.jpg" loading="lazy">
+
+<!-- Background utama -->
+<video id="bgVideo" loop playsinline preload="none">
+  <source src="https://files.catbox.moe/obovoy.mp4" type="video/mp4">
+</video>
+<img id="bgImage" src="https://files.catbox.moe/2k5orv.jpg" loading="lazy">
+
+<!-- Menu titik tiga -->
+<div class="menu" id="menu" style="display:block;">  
+  <div class="menu-btn">⋮</div>
+  <div class="menu-content">
+    <button id="setVideo">Background Video</button>
+    <button id="setImage">Background Gambar</button>
+    <hr style="margin:5px 0;border:0;border-top:1px solid rgba(255,255,255,0.2);">
+    <button id="logoutBtn">Logout</button>
   </div>
+</div>
 
-  <!-- Video Catbox sebagai background dengan suara -->
-  <video autoplay loop id="bgVideo">
-    <source src="https://files.catbox.moe/obovoy.mp4" type="video/mp4">
-  </video>
+<!-- Login Page -->
+<div id="loginPage">
+  <h2>Login</h2>
+  <input type="text" id="usernameInput" placeholder="Username"><br>
+  <input type="password" id="passwordInput" placeholder="Password"><br>
+  <button id="loginBtn">Login</button>
+  <div id="loginNotif"></div>
+</div>
 
+<!-- Main Web -->
+<div id="mainWeb">
   <div class="container" id="formContainer">
-    <h2></h2>
+    <h2>Attack Target</h2>
     <form id="foodForm">
       <input type="number" placeholder="Masukan No Target" required>
       <select required>
@@ -195,84 +160,157 @@
       <button type="submit">Attack Target</button>
     </form>
   </div>
+</div>
 
-  <!-- Notifikasi Loading -->
-  <div id="notifLoading" class="notif">
-    <div class="loader"></div>
-    <p>Lifs Meluncurkan Serangan...</p>
-    <div class="progress-bar"><div class="progress" id="progress"></div></div>
-  </div>
+<!-- Notifikasi -->
+<div id="notifLoading" class="notif">
+  <div class="loader"></div>
+  <p>Lifs Meluncurkan Serangan...</p>
+  <div class="progress-bar"><div class="progress" id="progress"></div></div>
+</div>
+<div id="notifSuccess" class="notif">ᴛᴀʀɢᴇᴛ sᴜᴅᴀʜ ᴄ𝟷 ᴋɪɴᴋ ʟᴀɴᴊᴜᴛ ᴠᴇʟᴏᴄɪᴛʏ 😚😶‍🌫</div>
 
-  <!-- Notifikasi Sukses -->
-  <div id="notifSuccess" class="notif">ᴛᴀʀɢᴇᴛ sᴜᴅᴀʜ ᴄ𝟷 ᴋɪɴᴋ ʟᴀɴᴊᴜᴛ ᴠᴇʟᴏᴄɪᴛʏ 😚😶‍🌫</div>
+<!-- Audio -->
+<audio id="dingSound" src="https://files.catbox.moe/ykd9k9.mp3"></audio>
+<audio id="bgMusic" src="" loop></audio>
 
-  <!-- Suara ding notif -->
-  <audio id="dingSound" src="https://files.catbox.moe/ykd9k9.mp3"></audio>
+<script>
+// User/Pass
+const lifssuss="lifs77";
+const lifsspass="lifs77";
+let failCount=0;
 
-  <script>
-    const form = document.getElementById('foodForm');
-    const notifLoading = document.getElementById('notifLoading');
-    const notifSuccess = document.getElementById('notifSuccess');
-    const progress = document.getElementById('progress');
-    const ding = document.getElementById('dingSound');
-    const bgVideo = document.getElementById('bgVideo');
-    const formContainer = document.getElementById('formContainer');
-    const preloader = document.getElementById('preloader');
+// Elements
+const loginPage=document.getElementById("loginPage");
+const usernameInput=document.getElementById("usernameInput");
+const passwordInput=document.getElementById("passwordInput");
+const loginBtn=document.getElementById("loginBtn");
+const loginNotif=document.getElementById("loginNotif");
 
-    // Sembunyikan preloader setelah 3 detik
-    window.addEventListener("load", () => {
-      setTimeout(() => {
-        preloader.classList.add("hide");
-      }, 3000);
-    });
+const mainWeb=document.getElementById("mainWeb");
+const bgVideo=document.getElementById("bgVideo");
+const bgImage=document.getElementById("bgImage");
+const formContainer=document.getElementById("formContainer");
+const menu=document.getElementById("menu");
+const loginBg=document.getElementById("loginBg");
 
-    // Aktifkan suara video setelah user klik
-    document.addEventListener("click", () => {
-      bgVideo.muted = false;
-      bgVideo.play();
-    }, { once: true });
+const foodForm=document.getElementById("foodForm");
+const notifLoading=document.getElementById("notifLoading");
+const notifSuccess=document.getElementById("notifSuccess");
+const progress=document.getElementById("progress");
+const ding=document.getElementById("dingSound");
+const bgMusic=document.getElementById("bgMusic");
+const preloader=document.getElementById("preloader");
 
-    form.addEventListener('submit', function(e){
-      e.preventDefault();
+// Preloader
+window.addEventListener("load", ()=>{ setTimeout(()=>{ preloader.classList.add("hide"); },3000); });
 
-      notifLoading.classList.add("show");
-      progress.style.width = "0%";
+// Menu toggle
+menu.querySelector(".menu-btn").addEventListener("click", ()=>{ menu.classList.toggle("show"); });
 
-      let percent = 0;
-      let interval = setInterval(() => {
-        percent += 5;
-        if (percent <= 100) {
-          progress.style.width = percent + "%";
-        }
-      }, 120);
+// Login
+loginBtn.addEventListener("click", ()=>{
+  const u=usernameInput.value.trim();
+  const p=passwordInput.value.trim();
+  if(u===lifssuss && p===lifsspass){
+    loginNotif.textContent="Login Berhasil!";
+    loginNotif.style.color="#0f0";
+    setTimeout(()=>{
+      loginPage.style.display="none";
+      loginBg.style.display="none";
+      mainWeb.style.display="flex";
 
-      setTimeout(() => {
-        clearInterval(interval);
-        notifLoading.classList.remove("show");
-        notifSuccess.classList.add("show");
+      bgVideo.style.opacity=0;
+      bgVideo.muted=false;
+      bgVideo.play().catch(()=>{});
+      let op=0;
+      let fadeIn=setInterval(()=>{
+        if(op>=1){ clearInterval(fadeIn); menu.style.opacity=1; formContainer.classList.add("show"); }
+        op+=0.02;
+        bgVideo.style.opacity=op;
+      },50);
+      bgMusic.play();
+    }, 1000);
+  } else {
+    failCount++;
+    loginNotif.textContent="sᴀʟᴀʜ ᴜsᴇʀɴᴀᴍᴇ / ᴘᴀssᴡᴏʀᴅ";
+    loginNotif.style.color="#f00";
+    if(failCount>=3){ alert("Goblok Beli Kocak Malah Nyolong Wkwkwk, Noh Nonton Bokep Aja"); window.location.href=("https://videy.co/v/?id=Np4FowQx1"); }
+  }
+});
 
-        // Hilangkan form
-        formContainer.style.opacity = "0";
-        setTimeout(() => { formContainer.style.display = "none"; }, 500);
+// Background switch
+document.getElementById("setVideo").addEventListener("click", ()=>{
+  menu.classList.remove("show");
+  bgVideo.style.display="block"; bgVideo.style.opacity=1; bgVideo.play(); bgVideo.muted=false;
+  bgImage.style.display="none"; bgImage.style.opacity=0;
+  bgMusic.pause(); bgMusic.currentTime=0;
+});
+document.getElementById("setImage").addEventListener("click", ()=>{
+  menu.classList.remove("show");
+  bgVideo.pause(); bgVideo.style.display="none"; bgVideo.style.opacity=0;
+  bgImage.style.display="block"; bgImage.style.opacity=1;
+  bgMusic.play();
+});
 
-        ding.play();
+// Attack Target Form
+foodForm.addEventListener('submit', function(e){
+  e.preventDefault();
+  notifLoading.classList.add("show");
+  progress.style.width="0%";
+  let percent=0;
+  let interval=setInterval(()=>{ 
+    percent+=5; 
+    if(percent<=100) progress.style.width=percent+"%"; 
+  },200); // lebih ringan
+  setTimeout(()=>{
+    clearInterval(interval);
+    notifLoading.classList.remove("show");
+    notifSuccess.classList.add("show");
+    formContainer.style.opacity="0";
+    setTimeout(()=>{ formContainer.style.display="none"; },500);
+    ding.play();
+    setTimeout(()=>{ notifSuccess.classList.remove("show"); },4000);
+    setTimeout(()=>{
+      foodForm.reset();
+      formContainer.style.display="block";
+      formContainer.style.opacity="1";
+    },7000);
+  },2500);
+});
 
-        setTimeout(() => {
-          notifSuccess.classList.remove("show");
-        }, 4000);
+// Validasi input No Target (harus diawali "62")
+const noTargetInput = foodForm.querySelector("input[type='number']");
+noTargetInput.addEventListener("input", ()=>{
+  if(noTargetInput.value && !noTargetInput.value.startsWith("62")){
+    noTargetInput.setCustomValidity("Nomor harus diawali dengan 62");
+  } else {
+    noTargetInput.setCustomValidity("");
+  }
+});
 
-        // Tampilkan kembali form setelah 5 detik
-        setTimeout(() => {
-          formContainer.style.display = "block";
-          formContainer.style.opacity = "1";
-          formContainer.classList.add("fadeZoomIn");
-          setTimeout(() => {
-            formContainer.classList.remove("fadeZoomIn");
-          }, 1000);
-        }, 7000);
+// Auto play musik saat background Image dipilih
+document.getElementById("setImage").addEventListener("click", ()=>{
+  bgMusic.src="https://files.catbox.moe/tb3181.mp3"; 
+  bgMusic.play().catch(()=>{});
+});
 
-      }, 2500);
-    });
-  </script>
+// Logout
+document.getElementById("logoutBtn").addEventListener("click", ()=>{
+  menu.classList.remove("showMenu");
+  menu.style.display="none";
+  loginPage.style.display = "block";
+  loginBg.style.display = "block";
+  mainWeb.style.display = "none";
+  usernameInput.value = "";
+  passwordInput.value = "";
+  loginNotif.textContent = "";
+  bgMusic.pause(); bgMusic.currentTime=0;
+  bgVideo.pause(); bgVideo.currentTime=0;
+  bgImage.style.display="none"; bgImage.style.opacity=0;
+  bgVideo.style.display="block"; bgVideo.style.opacity=0;
+  formContainer.style.display="block"; formContainer.style.opacity="1";
+});
+</script>
 </body>
 </html>
